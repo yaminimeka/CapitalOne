@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script type="text/javascript">
+function myFunction(){
+	var xhr = new XMLHttpRequest();
+	xhr.open("POST", "https://2016.api.levelmoney.com/api/v2/core/get-all-transactions", true);
+	xhr.setRequestHeader('Content-Type', 'application/json');
+	xhr.setRequestHeader('Accept', 'application/json');
+	xhr.onloadend = function() {
+	    var parsed = JSON.parse(this.response),
+            pretty = JSON.stringify(parsed, null, 2),
+            json2 = JSON.parse(pretty)
+            total_transactions = json2.transactions.length;
+      
+        var monthly_resp_json = [], yearly_resp_json=[], ignoring_donuts=[];
+         
+        
+        for(var year1=2014; year1<2017; year1++){
+            
+            for(var month=1; month<13; month++){
+                var monthly_income = 0; // monthly total income
+                var monthly_amount_spent  = 0; // monthly total outcome        
+                var obj1    = {};
+                
+                                
+                for(var i=0; i<total_transactions; i++ ){
+
+                    var transaction_amount =json2.transactions[i].amount;
+                    var transaction_time =json2.transactions[i]['transaction-time'];
+                    
+                    var transaction_time_data = transaction_time.split('-');
+
+                    if(transaction_time_data[0]==year1 && transaction_time_data[1]==month && transaction_amount>0){
+                         monthly_income=monthly_income+transaction_amount;
+                    }
+                    if(transaction_time_data[0]==year1 && transaction_time_data[1]==month && transaction_amount<0){
+                        monthly_amount_spent = monthly_amount_spent+transaction_amount;
+                    }
+
+                    console.log(json2.transactions[i].merchant);
+                }
+
+                 if (monthly_income == 0 && monthly_amount_spent == 0) {
+                 	continue;
+                 }
+
+
+                obj1.income = monthly_income/100.00;
+                obj1.spent = monthly_amount_spent/100.00;
+                eval('var resp_obj = {"'+year1+"-"+month+'":obj1}');
+                monthly_resp_json.push(resp_obj);
+
+            }
+        
+        }
+         
+
+        for(var year2=2014; year2<2017; year2++){
+            
+            var yearly_income = 0;// Yearly average income
+            var amount_spent_yearly  = 0;// Yearly average outcome        
+            var obj2 = {};
+            
+            for(var j=0; j<total_transactions; j++ ){
+
+                var transaction_amount =json2.transactions[j].amount;
+                var transaction_time =json2.transactions[j]['transaction-time'];
+                var split1 = transaction_time.split('-');
+
+                if(split1[0]==year2 && transaction_amount>0){
+                     yearly_income = yearly_income+transaction_amount;
+                }
+                if(split1[0]==year2 && transaction_amount<0){
+                    amount_spent_yearly = amount_spent_yearly+transaction_amount;
+                }
+
+            }
+               
+            obj2.AverageIncome = yearly_income/12;
+            obj2.AverageAmountSpent = amount_spent_yearly/12;
+            eval('var resp_obj = {"'+year2+'":obj2}');
+            yearly_resp_json.push(resp_obj);
+
+        }
+
+        for(var year3=2014; year3<2017; year3++){
+            
+            for(var month=1; month<13; month++){
+                var monthly_income = 0; // monthly total income
+                var monthly_amount_spent  = 0; // monthly total outcome        
+                var obj1    = {};
+                
+                                
+                for(var i=0; i<total_transactions; i++ ){
+
+                    var transaction_amount =json2.transactions[i].amount;
+                    var transaction_time =json2.transactions[i]['transaction-time'];
+                    var transaction_merchant = json2.transactions[i].merchant;
+                    
+                    var transaction_time_data = transaction_time.split('-');
+
+                    if(transaction_time_data[0]==year3 && transaction_time_data[1]==month && transaction_amount>0){
+                         monthly_income=monthly_income+transaction_amount;
+                    }
+                    if(transaction_time_data[0]==year3 && transaction_time_data[1]==month && transaction_amount<0){
+                        if(transaction_merchant=="Krispy Kreme Donuts"){
+                            continue;
+                        }
+                        monthly_amount_spent = monthly_amount_spent+transaction_amount;
+                    }
+
+                    
+                }
+
+                 if (monthly_income == 0 && monthly_amount_spent == 0) {
+                    continue;
+                 }
+
+
+                obj1.income = monthly_income/100.00;
+                obj1.spent = monthly_amount_spent/100.00;
+                eval('var resp_obj = {"'+year3+"-"+month+'":obj1}');
+                ignoring_donuts.push(resp_obj);
+
+            }
+        
+        }
+        
+        document.getElementById('division2').innerHTML = '<pre>'+JSON.stringify(monthly_resp_json,null,2)+'</pre>';
+        document.getElementById('division3').innerHTML = '<pre>'+JSON.stringify(yearly_resp_json, null, 2)+'</pre>';
+        document.getElementById('division4').innerHTML = '<pre>'+JSON.stringify(ignoring_donuts, null, 2)+'</pre>';;
+	};
+	xhr.onerror = function(err) {
+	    document.getElementById('division').textContent = "ugh an error. i can't handle this right now.";
+	};
+	args = {"args": {"uid":  1110590645, "token":  "570661AA19FE3AA49CA07C974C85D469", "api-token":  "AppTokenForInterview", "json-strict-mode": false, "json-verbose-response": false}};
+	xhr.send(JSON.stringify(args));
+}
+</script>
+<meta charset="ISO-8859-1">
+<title>Insert title here</title>
+</head>
+<body>
+	<p><b>Click on Button for result.</b></p>
+	<input type="button" onclick="myFunction()" value="Result" />
+    <br><br>
+    <p> <b>Monthly Income and Outcome :</b></p>
+    <div id="division2"></div>
+    <br><br>
+    <p> <b>Yearly Average Income and Amount-Spent :</b></p>
+    <div id="division3"></div>
+    <br><br>
+    <p> <b>Amount spent ignoring Donuts :</b></p>
+    <div id="division4"></div>
+    <br><br>
+</body>
+</html>
